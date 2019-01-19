@@ -1,30 +1,35 @@
 from django.contrib import messages
 from django.core import mail
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.template.loader import render_to_string
 
 from eventex.subscriptions.forms import SubscriptionForm
 
-
 def subscribe(request):
     if request.method == 'POST':
-        form = SubscriptionForm(request.POST)
+        return create(request)
+    else:
+        return new(request)
 
-        if form.is_valid():
-            body = render_to_string('subscriptions/subscription_email.txt', form.cleaned_data)
-            mail.send_mail('Confirmação de inscrição',
+def create(request):
+    form = SubscriptionForm(request.POST)
+
+    if form.is_valid():
+        body = render_to_string('subscriptions/subscription_email.txt', form.cleaned_data)
+        mail.send_mail('Confirmação de inscrição',
                        body,
                        'contato@eventex.com.br',
-                       ['contato@eventex.com.br', form.cleaned_data['email'] ])
+                       ['contato@eventex.com.br', form.cleaned_data['email']])
 
-            messages.success(request, 'Inscrição Realizada com sucesso!')
+        messages.success(request, 'Inscrição Realizada com sucesso!')
 
-            return HttpResponseRedirect('/inscricao/')
-        else:
-            return render(request, 'subscriptions/subscription_form.html',
-                          {'form':form})
+        return HttpResponseRedirect('/inscricao/')
     else:
-        context = {'form':SubscriptionForm()}
-        return render(request, 'subscriptions/subscription_form.html', context)
+        return render(request, 'subscriptions/subscription_form.html',
+                      {'form': form})
+
+def new(request):
+    return render(request, 'subscriptions/subscription_form.html', {'form': SubscriptionForm()})
+
 
