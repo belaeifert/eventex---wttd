@@ -17,6 +17,8 @@ def create(request):
     form = SubscriptionForm(request.POST)
 
     if not form.is_valid():
+        print(form)
+        print(type(form))
         return render(request, 'subscriptions/subscription_form.html',
                       {'form': form})
 
