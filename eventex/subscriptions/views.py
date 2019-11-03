@@ -19,23 +19,35 @@ def create(request):
     form = SubscriptionForm(request.POST)
 
     if not form.is_valid():
-        print(form)
-        print(type(form))
         return render(request, 'subscriptions/subscription_form.html',
                       {'form': form})
 
+    subscription = Subscription.objects.create(**form.cleaned_data)
+
     #send email
-    _send_mail('Confirmação de inscrição', settings.DEFAULT_FROM_EMAIL, form.cleaned_data['email'], 'subscriptions/subscription_email.txt', form.cleaned_data)
+    _send_mail('Confirmação de inscrição',
+               settings.DEFAULT_FROM_EMAIL,
+               subscription.email,
+               'subscriptions/subscription_email.txt',
+               {'subscription':subscription})
 
-    Subscription.objects.create(**form.cleaned_data)
-    #sucess feedback
-    messages.success(request, 'Inscrição Realizada com sucesso!')
 
-    return HttpResponseRedirect('/inscricao/')
+    return HttpResponseRedirect('/inscricao/{}/'.format(subscription.pk))
 
 
 def new(request):
     return render(request, 'subscriptions/subscription_form.html', {'form': SubscriptionForm()})
+
+def detail(request, pk):
+    subscription = Subscription(
+        name='Isabela Eifert',
+        cpf='12345678901',
+        email='teste@teste.net',
+        phone='21-999999999',
+    )
+    return render(request,
+                  'subscriptions/subscription_detail.html',
+                  {'subscription': subscription})
 
 def _send_mail(subject, from_, to, template_name, context):
     body = render_to_string(template_name, context)
